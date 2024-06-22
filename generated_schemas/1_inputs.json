@@ -1,0 +1,97 @@
+{
+  "model_type": "multiple",
+  "documentation": "",
+  "description": "Run Crystalformer",
+  "schema_properties": {
+    "spacegroup": {
+      "title": "Spacegroup",
+      "description": "Space group number",
+      "minimum": 1,
+      "maximum": 230,
+      "index": 1,
+      "__current": "field_spacegroup",
+      "__parent": "CrystalformerOptions",
+      "type": "integer"
+    },
+    "elements": {
+      "title": "Elements",
+      "description": "Elements to include, separated by spaces",
+      "index": 2,
+      "__current": "field_elements",
+      "__parent": "CrystalformerOptions",
+      "type": "string"
+    },
+    "temperature": {
+      "title": "Temperature",
+      "description": "Temperature for generation",
+      "default": 1.0,
+      "minimum": 0.5,
+      "maximum": 1.5,
+      "index": 3,
+      "__current": "field_temperature",
+      "__parent": "CrystalformerOptions",
+      "type": "number"
+    },
+    "seed": {
+      "title": "Seed",
+      "description": "Random seed",
+      "default": 42,
+      "index": 4,
+      "__current": "field_seed",
+      "__parent": "CrystalformerOptions",
+      "type": "integer"
+    }
+  },
+  "schema_references": {},
+  "required_properties": [
+    "spacegroup",
+    "elements"
+  ],
+  "__internal_meta__": {
+    "CrystalformerOptions": {
+      "title": "CrystalformerOptions",
+      "type": "object",
+      "properties": {
+        "spacegroup": {
+          "title": "Spacegroup",
+          "description": "Space group number",
+          "minimum": 1,
+          "maximum": 230,
+          "index": 1,
+          "type": "integer"
+        },
+        "elements": {
+          "title": "Elements",
+          "description": "Elements to include, separated by spaces",
+          "index": 2,
+          "type": "string"
+        },
+        "temperature": {
+          "title": "Temperature",
+          "description": "Temperature for generation",
+          "default": 1.0,
+          "minimum": 0.5,
+          "maximum": 1.5,
+          "index": 3,
+          "type": "number"
+        },
+        "seed": {
+          "title": "Seed",
+          "description": "Random seed",
+          "default": 42,
+          "index": 4,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "spacegroup",
+        "elements"
+      ]
+    },
+    "BaseModel": {
+      "title": "BaseModel",
+      "type": "object",
+      "properties": {}
+    }
+  }
+}

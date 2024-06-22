@@ -85,7 +85,7 @@ def sample_crystal(key, transformer, params, n_max, batchsize, atom_types, wyck_
             a_logit = a_logit + jnp.where(atom_mask, 1e10, 0.0) # enhance the probability of masked atoms (do not need to normalize since we only use it for sampling, not computing logp)
             _temp = jax.lax.cond(i==0,
                                  true_fun=lambda x: jnp.array(T1, dtype=float),
-                                 false_fun=lambda x: temperature,
+                                 false_fun=lambda x: jnp.array(temperature, dtype=float),
                                  operand=None)
             a = sample_top_p(subkey, a_logit, top_p, _temp)  # use T1 for the first atom type
             A = A.at[:, i].set(a)
@@ -180,7 +180,7 @@ def sample_crystal(key, transformer, params, n_max, batchsize, atom_types, wyck_
             a_logit = a_logit + jnp.where(atom_mask, 1e10, 0.0) # enhance the probability of masked atoms (do not need to normalize since we only use it for sampling, not computing logp)
             _temp = jax.lax.cond(i==0,
                                  true_fun=lambda x: jnp.array(T1, dtype=float),
-                                 false_fun=lambda x: temperature,
+                                 false_fun=lambda x: jnp.array(temperature, dtype=float),
                                  operand=None)
             a = sample_top_p(subkey, a_logit, top_p, _temp)  # use T1 for the first atom type
             A = jnp.concatenate([A, a[:, None]], axis=1)
