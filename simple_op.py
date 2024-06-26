@@ -149,7 +149,7 @@ def main():
             )
         
         # Launch the Gradio interface
-        app.launch(share=True, server_port=8080)
+        app.launch(share=True)
 
 if __name__ == "__main__":
     main()
