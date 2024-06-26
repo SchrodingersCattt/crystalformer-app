@@ -3,3 +3,4 @@ job*
 *.out
 __pycache__/
 data/
+tmp*
