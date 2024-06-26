@@ -4,3 +4,4 @@ job*
 __pycache__/
 data/
 tmp*
+generated_schemas
