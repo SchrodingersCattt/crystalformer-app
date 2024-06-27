@@ -2,6 +2,14 @@
 job*
 *.out
 __pycache__/
-data/
-tmp*
+*/__pycache__/
+# data/
+*/tmp*
 generated_schemas
+*/job.json
+*/workplace
+*whl
+*/*cif
+*/*zip
+*egg-info
+*/*egg-info

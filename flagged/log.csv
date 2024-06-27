@@ -1,5 +1,0 @@
-Space Group (1-230),Elements (space-separated),Temperature,Random Seed,output,flag,username,timestamp
-225,Ba Ti O,0.7,42,,,,2024-06-21 09:35:58.289939
-225,C,1,42,Error occurred during crystal generation.,,,,2024-06-21 13:41:57.171336
-225,C,1,42,Error occurred during crystal generation.,,,,2024-06-21 13:41:59.506107
-225,C,1,42,flagged/CIF File/3ca11483c55de7eab535/pred_struct.cif,,,2024-06-22 15:00:32.160518
