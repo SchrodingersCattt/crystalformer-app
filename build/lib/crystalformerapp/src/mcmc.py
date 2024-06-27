@@ -2,8 +2,13 @@ import jax
 import jax.numpy as jnp
 from functools import partial
 
+<<<<<<< HEAD:build/lib/crystalformerapp/src/mcmc.py
 from .wyckoff import fc_mask_table
 from .von_mises import sample_von_mises
+=======
+from wyckoff import fc_mask_table
+from von_mises import sample_von_mises
+>>>>>>> main:src/mcmc.py
 
 
 get_fc_mask = lambda g, w: jnp.logical_and((w>0)[:, None], fc_mask_table[g-1, w])

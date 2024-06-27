@@ -7,6 +7,7 @@ import os
 import multiprocessing
 import math
 
+<<<<<<< HEAD:build/lib/crystalformerapp/src/main.py
 from .utils import GLXYZAW_from_file, GLXA_to_csv, letter_to_number
 from .elements import element_dict, element_list
 from .transformer import make_transformer  
@@ -16,6 +17,17 @@ from .loss import make_loss_fn
 from .checkpoint import find_ckpt_filename
 from .wyckoff import mult_table
 from .mcmc import make_mcmc_step
+=======
+from utils import GLXYZAW_from_file, GLXA_to_csv, letter_to_number
+from elements import element_dict, element_list
+from transformer import make_transformer  
+from train import train
+from sample import sample_crystal, make_update_lattice
+from loss import make_loss_fn
+import checkpoint
+from wyckoff import mult_table
+from mcmc import make_mcmc_step
+>>>>>>> main:src/main.py
 
 import argparse
 parser = argparse.ArgumentParser(description='')
