@@ -5,3 +5,5 @@ pyxtal==0.6.3
 SMACT==2.5.5
 matbench-genmetrics==0.6.1
 matminer @ git+https://github.com/hackingmaterials/matminer.git
+gdown
+weas-widget
