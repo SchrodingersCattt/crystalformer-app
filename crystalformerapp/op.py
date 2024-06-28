@@ -159,7 +159,7 @@ def run_op_gpu(
     spacegroup, elements, wyckoff, 
     temperature, seed, T1, nsweeps,
     access_key, project_id, machine_type,
-    tempdir 
+    image, tempdir 
 ):
     from bohrium_open_sdk import OpenSDK
     import time
@@ -178,15 +178,14 @@ def run_op_gpu(
         f"\""
     )
 
-    # Convert project_id to native Python int
-    project_id_native = int(np.uint64(project_id))
+    project_id_native = int(project_id)
 
     resp = client.job.submit(
         project_id=project_id_native,
         machine_type=machine_type,
         job_name="crystalformer",
         cmd=cmd,
-        image_address="registry.dp.tech/dptech/prod-19853/crystal-former:0.0.1",
+        image_address=image,
         out_files=["*cif"],
         dataset_path=[],
         job_group_id=0,

@@ -1,7 +1,3 @@
-<div align="center">
-	<img align="middle" src="imgs/crystalformer.png" width="400" alt="logo"/>
-  <h2> Crystal Generation with Space Group Informed Transformer</h2> 
-</div>
 
 [![arXiv](https://img.shields.io/badge/arXiv-2403.15734-b31b1b.svg)](https://arxiv.org/abs/2403.15734)
 
