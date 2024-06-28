@@ -76,13 +76,17 @@ def main():
                     T1 = gr.Slider(label="T1", minimum=100, maximum=100000000, value=100, step=100)
                     nsweeps = gr.Slider(label="nsweeps", minimum=0, maximum=20, value=10, step=1)
             with gr.Row():
+                with gr.Column():
                     access_key = gr.Textbox(label="Access Key")
                     project_id = gr.Textbox(label="Project ID")
+
+                with gr.Column():
                     machine_type = gr.Dropdown(label="Machine Type", choices=[
+                        "c12_m64_1 * NVIDIA L4",
                         "1 * NVIDIA T4_16g",
                         "1 * NVIDIA V100_32g",
-                        "c12_m64_1 * NVIDIA L4",
                     ])
+                    image = gr.Textbox(label="Image", value="registry.dp.tech/dptech/prod-19853/crystal-former:0.0.2")                  
 
             with gr.Row():
                 generateWeb_btn = gr.Button("Generate Structure")
@@ -108,19 +112,19 @@ def main():
                 outputs=[output_file, material_viewer]
             )
 
-            def generate_and_display_structure_gpu(sp, el, wy, temp, sd, T1, ns, ak, pid, mt):
+            def generate_and_display_structure_gpu(sp, el, wy, temp, sd, T1, ns, ak, pid, mt, im):
                 global current_tempdir
                 if current_tempdir:
                     current_tempdir.cleanup()  # Clean up the previous temporary directory
                 current_tempdir = tempfile.TemporaryDirectory(dir=".")  # Create a new temporary directory
-                cif_file_path = run_op_gpu(sp, el, wy, temp, sd, T1, ns, ak, pid, mt, current_tempdir.name)
+                cif_file_path = run_op_gpu(sp, el, wy, temp, sd, T1, ns, ak, pid, mt, im, current_tempdir.name)
                 with open(cif_file_path, 'r') as ff:
                     cif_content = "".join(ff.readlines())
                 return cif_file_path, MaterialViewer(materialFile=cif_content, format='cif', height=480)
 
             generateGPU_btn.click(
                 fn=generate_and_display_structure_gpu,
-                inputs=[spacegroup, elements, wyckoff, temperature, seed, T1, nsweeps, access_key, project_id, machine_type],
+                inputs=[spacegroup, elements, wyckoff, temperature, seed, T1, nsweeps, access_key, project_id, machine_type, image],
                 outputs=[output_file, material_viewer]
             )
 
@@ -148,4 +152,4 @@ def main():
     app.launch(share=True)
 
 if __name__ == "__main__":
-    main()
+    main(server_name='0.0.0.0',server_port=50001)
