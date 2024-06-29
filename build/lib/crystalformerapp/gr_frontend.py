@@ -16,20 +16,20 @@ def main():
         with gr.Tab(label="Quick Start Mode"):
             with gr.Row():
                 with gr.Column():
-                    spacegroup = gr.Slider(label="Spacegroup", minimum=1, maximum=230, value=225, step=1)
-                    elements = gr.Textbox(label="Elements", value="C")
+                    qs_spacegroup = gr.Slider(label="Spacegroup", minimum=1, maximum=230, value=225, step=1)
+                    qs_elements = gr.Textbox(label="Elements", value="C")
                 with gr.Column():
-                    temperature = gr.Slider(label="Temperature", minimum=0.1, maximum=2.0, value=1.0, step=0.1)
-                    seed = gr.Number(label="Seed", value=42)
+                    qs_temperature = gr.Slider(label="Temperature", minimum=0.1, maximum=2.0, value=1.0, step=0.1)
+                    qs_seed = gr.Number(label="Seed", value=42)
                     
             with gr.Row():
-                generate_btn = gr.Button("Generate Structure")
-                clear_btn = gr.Button("Clear Inputs")
+                qs_generate_btn = gr.Button("Generate Structure")
+                qs_clear_btn = gr.Button("Clear Inputs")
 
-            output_file = gr.File(label="CIF File")
-            material_viewer = MaterialViewer(height=480, materialFile="", format='cif')
+            qs_output_file = gr.File(label="CIF File")
+            qs_material_viewer = MaterialViewer(height=480, materialFile="", format='cif')
 
-            def generate_and_display_structure(sp, el, temp, sd):
+            def generate_and_display_structure_quick(sp, el, temp, sd):
                 global current_tempdir
                 if current_tempdir:
                     current_tempdir.cleanup()  # Clean up the previous temporary directory
@@ -39,16 +39,16 @@ def main():
                     cif_content = "".join(ff.readlines())
                 return cif_file_path, MaterialViewer(materialFile=cif_content, format='cif', height=480)
 
-            generate_btn.click(
-                fn=generate_and_display_structure,
-                inputs=[spacegroup, elements, temperature, seed],
-                outputs=[output_file, material_viewer]
+            qs_generate_btn.click(
+                fn=generate_and_display_structure_quick,
+                inputs=[qs_spacegroup, qs_elements, qs_temperature, qs_seed],
+                outputs=[qs_output_file, qs_material_viewer]
             )
 
-            clear_btn.click(
+            qs_clear_btn.click(
                 fn=lambda: (225, "C", 1.0, 42),
                 inputs=None,
-                outputs=[spacegroup, elements, temperature, seed]
+                outputs=[qs_spacegroup, qs_elements, qs_temperature, qs_seed]
             )
 
             gr.Markdown("""
@@ -63,7 +63,7 @@ def main():
                 4. Set a random seed (optional)
                 5. Click 'Generate Structure' to create the CIF file
             """)
-
+            
         with gr.Tab(label="Research Mode"):
             with gr.Row():
                 with gr.Column():
@@ -86,46 +86,36 @@ def main():
                         "1 * NVIDIA T4_16g",
                         "1 * NVIDIA V100_32g",
                     ])
-                    image = gr.Textbox(label="Image", value="registry.dp.tech/dptech/prod-19853/crystal-former:0.0.2")                  
+                    image = gr.Textbox(label="Image", value="registry.dp.tech/dptech/prod-19853/crystal-former:0.0.2")
 
             with gr.Row():
-                generateWeb_btn = gr.Button("Generate Structure")
                 generateGPU_btn = gr.Button("Generate Structure on GPU machines")
                 clear_btn = gr.Button("Clear Inputs")
 
             output_file = gr.File(label="CIF File")
+            error_message = gr.Markdown(label="Error", visible=False)
             material_viewer = MaterialViewer(height=480, materialFile="", format='cif')
-
-            def generate_and_display_structure_web(sp, el, wy, temp, sd, T1, ns):
-                global current_tempdir
-                if current_tempdir:
-                    current_tempdir.cleanup()  # Clean up the previous temporary directory
-                current_tempdir = tempfile.TemporaryDirectory(dir=".")  # Create a new temporary directory
-                cif_file_path = run_op(sp, el, wy, temp, sd, T1, ns, current_tempdir.name)
-                with open(cif_file_path, 'r') as ff:
-                    cif_content = "".join(ff.readlines())
-                return cif_file_path, MaterialViewer(materialFile=cif_content, format='cif', height=480)
-
-            generateWeb_btn.click(
-                fn=generate_and_display_structure_web,
-                inputs=[spacegroup, elements, wyckoff, temperature, seed, T1, nsweeps],
-                outputs=[output_file, material_viewer]
-            )
 
             def generate_and_display_structure_gpu(sp, el, wy, temp, sd, T1, ns, ak, pid, mt, im):
                 global current_tempdir
                 if current_tempdir:
-                    current_tempdir.cleanup()  # Clean up the previous temporary directory
-                current_tempdir = tempfile.TemporaryDirectory(dir=".")  # Create a new temporary directory
-                cif_file_path = run_op_gpu(sp, el, wy, temp, sd, T1, ns, ak, pid, mt, im, current_tempdir.name)
+                    current_tempdir.cleanup()
+                current_tempdir = tempfile.TemporaryDirectory(dir=".")
+                result = run_op_gpu(sp, el, wy, temp, sd, T1, ns, ak, pid, mt, im, current_tempdir.name)
+                
+                if "error" in result:
+                    error_message_content = f"**Error:** {result['error']}"
+                    return None, gr.update(visible=True, value=error_message_content), None
+                
+                cif_file_path = result
                 with open(cif_file_path, 'r') as ff:
                     cif_content = "".join(ff.readlines())
-                return cif_file_path, MaterialViewer(materialFile=cif_content, format='cif', height=480)
+                return cif_file_path, gr.update(visible=False), MaterialViewer(materialFile=cif_content, format='cif', height=480)
 
             generateGPU_btn.click(
                 fn=generate_and_display_structure_gpu,
                 inputs=[spacegroup, elements, wyckoff, temperature, seed, T1, nsweeps, access_key, project_id, machine_type, image],
-                outputs=[output_file, material_viewer]
+                outputs=[output_file, error_message, material_viewer]
             )
 
             clear_btn.click(
@@ -149,7 +139,7 @@ def main():
                 - **nsweeps**: control the steps of mcmc to refine the generated structures
             """)
 
-    app.launch(share=True)
+    app.launch(server_name='0.0.0.0', server_port=50001)
 
 if __name__ == "__main__":
-    main(server_name='0.0.0.0',server_port=50001)
+    main()

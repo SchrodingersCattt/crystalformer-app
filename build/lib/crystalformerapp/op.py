@@ -167,7 +167,8 @@ def run_op_gpu(
     client = OpenSDK(access_key=access_key)
 
     if not os.path.exists(tempdir):
-        os.makedirs(tempdir)  
+        os.makedirs(tempdir)
+    
     cmd = (
         f"python -c \""
         f"import os; "
@@ -193,23 +194,22 @@ def run_op_gpu(
     print(resp)
     print("Job submitted. Waiting for completion...")
 
-    # Loop to check the job status
     job_id = resp["data"]['jobId']
     while True:
         job_info = client.job.detail(job_id)
         job_status = job_info["data"]["status"]
         if job_status == 2:
             print("Job completed!")
-            client.job.download(job_id, f'{tempdir}/out.zip')            
+            client.job.download(job_id, f'{tempdir}/out.zip')
             os.system(f"unzip {tempdir}/out.zip -d {tempdir}")
             return os.path.join(tempdir, "pred_struct.cif")
-            break
-
+        
         elif job_status == -1:
+            error_message = job_info["data"].get("errorinfo", "Job failed without a specific error message.")
             print("Job failed.")
-            break
+            return {"error": error_message}
+        
         else:
             print("Job not done yet. Checking again after 30 seconds...")
-            time.sleep(30)  # Pause for 30 seconds before checking the status again
-
+            time.sleep(30)
 
