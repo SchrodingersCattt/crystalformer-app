@@ -41,9 +41,6 @@ from crystalformerapp.src.loss import make_loss_fn
 from crystalformerapp.src.checkpoint import find_ckpt_filename, load_data
 from crystalformerapp.src.transformer import make_transformer
 
-output = "epoch_009800.pkl"
-
-
 current_dir = os.path.dirname(__file__)
 file_path = os.path.join(current_dir, "model", "config.yaml")
 
@@ -57,71 +54,81 @@ class MyObject:
           setattr(self, key, value)
 
 args = MyObject(args)
-key = jax.random.PRNGKey(42)
 
-params, transformer = make_transformer(
-        key, 
-        args.Nf, 
+def get_model(params, transformer, restore_path):
+    ckpt_filename, epoch_finished = find_ckpt_filename(restore_path)
+    if ckpt_filename is not None:
+        print("Load checkpoint file: %s, epoch finished: %g" %(ckpt_filename, epoch_finished))
+        ckpt = load_data(ckpt_filename)
+        params = ckpt["params"]
+    else:
+        print("No checkpoint file found. Start from scratch.")
+
+    print ("# of transformer params", ravel_pytree(params)[0].size)
+
+    jax.config.update("jax_enable_x64", True) # to get off compilation warning, and to prevent sample nan lattice
+    loss_fn, logp_fn = make_loss_fn(
+        args.n_max, 
+        args.atom_types, 
+        args.wyck_types, 
         args.Kx, 
         args.Kl, 
-        args.n_max,
-        args.h0_size,
-        4, 
-        8,
-        32, 
-        args.model_size, 
-        args.embed_size,
-        args.atom_types, 
-        args.wyck_types,
-        0.3
+        transformer, 
+        args.lamb_a, 
+        args.lamb_w, 
+        args.lamb_l
+        )
+    return loss_fn, logp_fn, params
+
+
+####  for run_op_gpu
+params_gpu, transformer_gpu = make_transformer(
+    key=jax.random.PRNGKey(42),
+    Nf=5,
+    Kx=16,
+    Kl=4,
+    n_max=21,
+    h0_size=256,
+    num_layers=16,
+    num_heads=16,
+    key_size=64,
+    model_size=64,
+    embed_size=32,
+    atom_types=119,
+    wyck_types=28,
+    dropout_rate=0.5,
+    widening_factor=4,
+    sigmamin=1e-3
 )
-'''                     
+restore_path_gpu = os.path.join(current_dir, "model", "epoch_003800.pkl") 
 
 
-params, transformer = make_transformer(
-        key=jax.random.PRNGKey(42),
-        Nf=5,
-        Kx=16,
-        Kl=4,
-        n_max=21,
-        h0_size=256,
-        num_layers=16,
-        num_heads=16,
-        key_size=64,
-        model_size=64,
-        embed_size=32,
-        atom_types=119,
-        wyck_types=28,
-        dropout_rate=0.5,
-        widening_factor=4,
-        sigmamin=1e-3
-)
-'''
 
-def get_model(restore_path, params, transformer):
-    pass
-    
-print("\n========== Load checkpoint==========")
-restore_path = "/personal/crystalformerapp/crystalformerapp/model/epoch_009800.pkl"
-ckpt_filename, epoch_finished = find_ckpt_filename(restore_path)
-if ckpt_filename is not None:
-    print("Load checkpoint file: %s, epoch finished: %g" %(ckpt_filename, epoch_finished))
-    ckpt = load_data(ckpt_filename)
-    params = ckpt["params"]
-else:
-    print("No checkpoint file found. Start from scratch.")
-
-print ("# of transformer params", ravel_pytree(params)[0].size)
-
-jax.config.update("jax_enable_x64", True) # to get off compilation warning, and to prevent sample nan lattice
-loss_fn, logp_fn = make_loss_fn(args.n_max, args.atom_types, args.wyck_types, args.Kx, args.Kl, transformer, args.lamb_a, args.lamb_w, args.lamb_l)
+####  for run_op
+params_quick, transformer_quick = make_transformer(jax.random.PRNGKey(42),
+                                                    args.Nf, args.Kx, args.Kl, args.n_max,
+                                                    args.h0_size,
+                                                    4, 8,
+                                                    32, args.model_size, args.embed_size,
+                                                    args.atom_types, args.wyck_types, 0.3)
+restore_path_quick = os.path.join(current_dir, "model", "epoch_009800.pkl") 
 
 
 def run_op(
     spacegroup, elements, wyckoff, 
     temperature, seed, T1, nsweeps,
-    nsample, tempdir='./'
-):
+    nsample, tempdir, flag="quick"
+):      
+    if flag == "quick":
+        loss_fn_quick, logp_fn_quick, params = get_model(params_quick, transformer_quick, restore_path_quick)
+        logp_fn = logp_fn_quick
+        transformer = transformer_quick
+        
+    elif flag == "gpu":
+        loss_fn_gpu, logp_fn_gpu, params = get_model(params_gpu, transformer_gpu, restore_path_gpu)
+        logp_fn = logp_fn_gpu  
+        transformer = transformer_gpu
+    
     top_p = 1
     mc_width = 0.1
     n_sample = nsample  # batchsize equivalent
@@ -155,7 +162,7 @@ def run_op(
     key, subkey = jax.random.split(key)
 
     output_files = []
-    
+
     # Batch sampling
     XYZ, A, W, M, L = sample_crystal(
         subkey, 
@@ -211,6 +218,7 @@ def run_op_gpu(
 ):
     from bohrium_open_sdk import OpenSDK
     import time
+    import glob
 
     client = OpenSDK(access_key=access_key)
 
@@ -223,10 +231,10 @@ def run_op_gpu(
         f"import crystalformerapp; "
         f"from crystalformerapp import op; "
         f"op.run_op({spacegroup}, '{elements}', '{wyckoff}', "
-        f"{temperature}, {seed}, {T1}, {nsweeps}, {nsample}, f'./')"
+        f"{temperature}, {seed}, {T1}, {nsweeps}, {nsample}, './', 'gpu')"
         f"\""
     )
-
+    
     project_id_native = int(project_id)
 
     resp = client.job.submit(
@@ -250,7 +258,7 @@ def run_op_gpu(
             print("Job completed!")
             client.job.download(job_id, f'{tempdir}/out.zip')
             os.system(f"unzip {tempdir}/out.zip -d {tempdir}")
-            return os.path.join(tempdir, "pred_struct.cif")
+            return glob.glob(f"{tempdir}/*cif")
         
         elif job_status == -1:
             error_message = job_info["data"].get("errorinfo", "Job failed without a specific error message.")

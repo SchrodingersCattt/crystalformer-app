@@ -12,7 +12,7 @@ crystal space, which is crucial for data and compute efficient generative modeli
   pip install .
 ```
 
-Then command `crystalgpu-app` will create a gradio link.
+Then command `crystalgpt-app` will create a gradio link.
 
 
 ## Model card
