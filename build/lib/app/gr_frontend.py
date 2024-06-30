@@ -55,7 +55,7 @@ def main():
                                                "c4_m15_1 * NVIDIA T4"
                                                
                     ])
-                    image = gr.Textbox(label="Image", value="registry.dp.tech/dptech/prod-19853/crystal-former:0.0.7")
+                    image = gr.Textbox(label="Image", value="registry.dp.tech/dptech/prod-19853/crystal-former:0.0.8")
                 
                 generateGPU_btn_run = gr.Button("Submit Your Job to Bohrium")
             
