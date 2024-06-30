@@ -23,11 +23,11 @@ except RuntimeError as e:
     print("Changed platform to CPU.")
     
 from crystalformerapp import src, scripts
-from src.elements import element_dict
-from scripts.awl2struct import get_struct_from_lawx
-from src.checkpoint import find_ckpt_filename
-from src.transformer import make_transformer
-from src.simple_sample import sample_crystal
+from crystalformerapp.src.elements import element_dict
+from crystalformerapp.scripts.awl2struct import get_struct_from_lawx
+from crystalformerapp.src.checkpoint import find_ckpt_filename
+from crystalformerapp.src.transformer import make_transformer
+from crystalformerapp.src.simple_sample import sample_crystal
 
 import io
 import tempfile

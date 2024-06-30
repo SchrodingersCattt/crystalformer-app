@@ -15,7 +15,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'crystalgpt-app=crystalformerapp.gr_frontend:main'
+            'crystalgpt-app=app.gr_frontend:main'
         ]
     },    
     author="Schrodinger's Cat",
